@@ -16,12 +16,14 @@ public class Demo : MonoBehaviour {
 	
 	private Vector3 mousePos;
 	
+	private float animate = 0f;
+	
 	void Start () {
 		mousePos = Vector3.zero;
 		properties = new List<ShaderEdit>();
 		foreach (Material i in mats){
 			properties.Add(new ShaderEdit(i));
-			Debug.Log(i.GetColor("_Color1").ToString()+", "+i.GetColor("_Color2").ToString());
+			//Debug.Log(i.GetColor("_Color1").ToString()+", "+i.GetColor("_Color2").ToString());
 		}
 	}
 	
@@ -35,12 +37,23 @@ public class Demo : MonoBehaviour {
 			}
 		}
 		
-		if(Input.mousePosition != mousePos || Input.GetMouseButtonDown(0)){
+		if(Input.mousePosition != mousePos){
 			for(int i=0; i<mats.Count; i++){
 				properties[i].Apply();
 			}
 		}
 		mousePos = Input.mousePosition;
+		
+		if(animate > 0){
+			for(int i=0; i<mats.Count; i++){
+				properties[i].seed += animate;
+				if(properties[i].seed >= 1f){
+					properties[i].seed -= 1f;
+				}
+				properties[i].Apply();
+			}
+		}
+		
 	}
 	
 	void OnGUI() {
@@ -54,12 +67,14 @@ public class Demo : MonoBehaviour {
 				GUI.color = properties[i].color1;
 				if(GUI.Button(new Rect(nameOffset+uisize,uisize*(i+1),uisize,uisize),GUIContent.none)){
 					properties[i].color1 = RandColor();
+					properties[i].Apply();
 				}
 				GUI.DrawTexture(new Rect(nameOffset+uisize,uisize*(i+1),uisize,uisize),pixel,ScaleMode.ScaleToFit);
 				
 				GUI.color = properties[i].color2;
 				if(GUI.Button(new Rect(nameOffset+uisize+(uisize),uisize*(i+1),uisize,uisize),GUIContent.none)){
 					properties[i].color2 = RandColor();
+					properties[i].Apply();
 				}
 				GUI.DrawTexture(new Rect(nameOffset+uisize*2f,uisize*(i+1),uisize,uisize),pixel,ScaleMode.ScaleToFit);
 				
@@ -74,12 +89,8 @@ public class Demo : MonoBehaviour {
 					properties[i].Apply();
 				}
 			}
-			if(GUI.Button(new Rect(uisize,uisize*(mats.Count+2),nameOffset+(uisize*2f)+100f,uisize),"Apply Changes")){
-				for(int i=0; i<mats.Count; i++){
-					properties[i].Apply();
-				}
-			}
-			
+			GUI.Label(new Rect(uisize,uisize*(mats.Count+2),nameOffset,uisize),"Seed animation speed:");
+			animate = GUI.HorizontalSlider(new Rect(nameOffset+uisize*3f,uisize*(mats.Count+2),100f,uisize),animate,0f,0.1f);
 			
 			GUI.Box(new Rect(Screen.width-uisize-260f,uisize,260f,uisize*5f),GUIContent.none);
 			GUI.color = Color.white;
